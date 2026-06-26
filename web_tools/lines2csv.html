@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>行转 CSV</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#165DFF', danger: '#F53F3F' }
+                }
+            }
+        };
+    </script>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <header class="bg-white shadow-sm py-4">
+        <div class="container mx-auto px-6">
+            <div class="flex flex-wrap items-center gap-3 mb-1">
+                <a href="index.html" class="text-sm text-gray-500 hover:text-primary"><i class="fa fa-arrow-left mr-1"></i>返回首页</a>
+            </div>
+            <h1 class="text-2xl font-bold text-primary">
+                <i class="fa fa-table mr-2"></i>行转 CSV
+            </h1>
+            <p class="text-sm text-gray-500 mt-1 max-w-3xl">用空格/制表符分词，<strong>输出固定为一行</strong>逗号格式（<code class="text-xs bg-gray-100 px-1 rounded">a,b,c,d</code>），不输出换行；多行输入会按顺序展平为同一行；单元格内逗号/引号会转义；可选去重、忽略空行。</p>
+        </div>
+    </header>
+
+    <main class="flex-1 container mx-auto px-6 py-6">
+        <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-4">
+            <div class="mb-3">
+                <label for="lines2csvInput" class="block text-sm font-medium text-gray-700 mb-1">输入（可多行，空白分词，输出合并为一行）</label>
+                <textarea
+                    id="lines2csvInput"
+                    rows="12"
+                    class="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-sm font-mono"
+                    placeholder="多行会合并为单行 CSV，如：&#10;a  b  c  d&#10;1  2  3  →  a,b,c,d,1,2,3"
+                ></textarea>
+            </div>
+            <div class="flex flex-wrap items-center gap-4 mb-3 text-sm text-gray-700">
+                <label class="inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="lines2csvDedup" class="rounded border-gray-300 text-primary focus:ring-primary/50" />
+                    <span class="ml-2">去重（保留首次出现顺序）</span>
+                </label>
+                <label class="inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="lines2csvSkipEmpty" class="rounded border-gray-300 text-primary focus:ring-primary/50" checked />
+                    <span class="ml-2">忽略空行</span>
+                </label>
+            </div>
+            <div class="mb-3">
+                <label for="lines2csvOutput" class="block text-sm font-medium text-gray-700 mb-1">CSV 输出（仅一行，无换行）</label>
+                <textarea
+                    id="lines2csvOutput"
+                    rows="4"
+                    class="w-full px-2 py-1 border border-gray-300 rounded-md bg-gray-50 text-sm font-mono"
+                    placeholder="a,b,c,d 形式，单行"
+                    readonly
+                ></textarea>
+            </div>
+            <div class="flex flex-wrap items-center justify-between gap-2">
+                <div class="text-xs text-gray-500" id="lines2csvStats"></div>
+                <div class="flex gap-2">
+                    <button type="button" id="lines2csvConvertBtn" class="px-4 py-1.5 bg-primary text-white rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm">
+                        <i class="fa fa-arrow-right mr-1"></i> 转换
+                    </button>
+                    <button type="button" id="lines2csvCopyBtn" class="px-4 py-1.5 bg-gray-200 text-gray-600 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-300 text-sm" title="复制到剪贴板">
+                        <i class="fa fa-copy mr-1"></i> 复制
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="errorMsgLines2csv" class="mt-4 text-danger text-sm text-center hidden"></div>
+    </main>
+
+    <script>
+        function escapeCsvField(s) {
+            const str = s == null ? '' : String(s);
+            if (/[",\r\n]/.test(str)) {
+                return '"' + str.replace(/"/g, '""') + '"';
+            }
+            return str;
+        }
+
+        function lineToCells(line) {
+            const t = line.trim();
+            if (t.length === 0) return null;
+            return t.split(/\s+/);
+        }
+
+        function copyToClipboard(text, buttonElement) {
+            const errEl = document.getElementById('errorMsgLines2csv');
+            navigator.clipboard.writeText(text).then(() => {
+                errEl.classList.add('hidden');
+                const icon = buttonElement && buttonElement.querySelector ? buttonElement.querySelector('i') : null;
+                if (icon) {
+                    icon.classList.remove('fa-copy');
+                    icon.classList.add('fa-check');
+                    setTimeout(() => {
+                        icon.classList.remove('fa-check');
+                        icon.classList.add('fa-copy');
+                    }, 1000);
+                }
+            }).catch(err => {
+                errEl.textContent = '复制失败：' + err.message;
+                errEl.classList.remove('hidden');
+            });
+        }
+
+        function runLines2csv() {
+            const input = document.getElementById('lines2csvInput').value;
+            const skipEmpty = document.getElementById('lines2csvSkipEmpty').checked;
+            const dedup = document.getElementById('lines2csvDedup').checked;
+            const outEl = document.getElementById('lines2csvOutput');
+            const statsEl = document.getElementById('lines2csvStats');
+            const errEl = document.getElementById('errorMsgLines2csv');
+            errEl.classList.add('hidden');
+            errEl.textContent = '';
+
+            const rawLines = input.split(/\r?\n/);
+            const rawCount = rawLines.length;
+            const allCells = [];
+            for (let i = 0; i < rawLines.length; i++) {
+                const cells = lineToCells(rawLines[i]);
+                if (cells === null) {
+                    if (skipEmpty) continue;
+                } else {
+                    for (let j = 0; j < cells.length; j++) {
+                        allCells.push(cells[j]);
+                    }
+                }
+            }
+            let fields = allCells;
+            if (dedup) {
+                const seen = new Set();
+                fields = allCells.filter(function (c) {
+                    if (seen.has(c)) return false;
+                    seen.add(c);
+                    return true;
+                });
+            }
+
+            if (fields.length === 0) {
+                outEl.value = '';
+                statsEl.textContent = '';
+                errEl.textContent = skipEmpty ? '没有可转换的内容（输入为空或均为空行）' : '没有可转换的内容';
+                errEl.classList.remove('hidden');
+                return;
+            }
+
+            outEl.value = fields.map(escapeCsvField).join(',');
+            statsEl.textContent = '输出 1 行，共 ' + fields.length + ' 个用逗号分隔的字段（从 ' + rawCount + ' 行输入中采集）';
+        }
+
+        document.getElementById('lines2csvConvertBtn').addEventListener('click', runLines2csv);
+        document.getElementById('lines2csvCopyBtn').addEventListener('click', function () {
+            const text = document.getElementById('lines2csvOutput').value;
+            if (text) copyToClipboard(text, this);
+        });
+    </script>
+</body>
+</html>

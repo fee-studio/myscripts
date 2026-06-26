@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JDME 加解密</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#165DFF', danger: '#F53F3F' }
+                }
+            }
+        };
+    </script>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <header class="bg-white shadow-sm py-4">
+        <div class="container mx-auto px-6 flex flex-wrap items-center gap-3">
+            <a href="index.html" class="text-sm text-gray-500 hover:text-primary"><i class="fa fa-arrow-left mr-1"></i>返回首页</a>
+            <h1 class="text-2xl font-bold text-primary">
+                <i class="fa fa-lock mr-2"></i>JDME 加解密
+            </h1>
+        </div>
+    </header>
+
+    <main class="flex-1 container mx-auto px-6 py-6">
+        <div class="max-w-6xl mx-auto">
+            <div class="grid grid-cols-1 md:grid-cols-2 auto-rows-auto gap-6">
+                <div class="bg-white rounded-lg shadow-md p-3 md:h-[280px] flex flex-col justify-between">
+                    <h2 class="text-lg font-bold text-primary mb-2 text-center">
+                        <i class="fa fa-lock mr-2"></i>加密
+                    </h2>
+                    <div class="mb-2">
+                        <label for="plaintext" class="block text-sm font-medium text-gray-700 mb-1">明文内容</label>
+                        <textarea
+                            id="plaintext"
+                            rows="2"
+                            class="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+                            placeholder="请输入要加密的内容"
+                        ></textarea>
+                    </div>
+                    <div class="mb-2">
+                        <label for="encryptedResult" class="block text-sm font-medium text-gray-700 mb-1">加密结果</label>
+                        <textarea
+                            id="encryptedResult"
+                            rows="2"
+                            class="w-full px-2 py-1 border border-gray-300 rounded-md bg-gray-50"
+                            placeholder="加密结果将显示在这里（Hex 格式）"
+                            readonly
+                        ></textarea>
+                    </div>
+                    <div class="flex justify-center gap-2">
+                        <button id="encryptBtn" type="button" class="px-4 py-1.5 bg-primary text-white rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm">
+                            <i class="fa fa-lock mr-1"></i> 加密
+                        </button>
+                        <button id="copyEncrypted" type="button" class="px-4 py-1.5 bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 text-sm" title="复制到剪贴板">
+                            <i class="fa fa-copy mr-1"></i> 复制
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-3 md:h-[280px] flex flex-col justify-between">
+                    <h2 class="text-lg font-bold text-primary mb-2 text-center">
+                        <i class="fa fa-unlock mr-2"></i>解密
+                    </h2>
+                    <div class="mb-2">
+                        <label for="encrypted" class="block text-sm font-medium text-gray-700 mb-1">加密内容</label>
+                        <textarea
+                            id="encrypted"
+                            rows="2"
+                            class="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+                            placeholder="请输入要解密的内容（Hex 格式）"
+                        ></textarea>
+                    </div>
+                    <div class="mb-2">
+                        <label for="decrypted" class="block text-sm font-medium text-gray-700 mb-1">解密结果</label>
+                        <textarea
+                            id="decrypted"
+                            rows="2"
+                            class="w-full px-2 py-1 border border-gray-300 rounded-md bg-gray-50"
+                            placeholder="解密结果将显示在这里"
+                            readonly
+                        ></textarea>
+                    </div>
+                    <div class="flex justify-center gap-2">
+                        <button id="decryptBtn" type="button" class="px-4 py-1.5 bg-primary text-white rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm">
+                            <i class="fa fa-unlock mr-1"></i> 解密
+                        </button>
+                        <button id="copyDecrypted" type="button" class="px-4 py-1.5 bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 text-sm" title="复制到剪贴板">
+                            <i class="fa fa-copy mr-1"></i> 复制
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6 min-h-0 max-h-[300px] overflow-y-auto">
+                    <h3 class="text-lg font-bold text-primary mb-4">加密历史</h3>
+                    <div id="encryptHistory" class="space-y-3"></div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6 min-h-0 max-h-[300px] overflow-y-auto">
+                    <h3 class="text-lg font-bold text-primary mb-4">解密历史</h3>
+                    <div id="decryptHistory" class="space-y-3"></div>
+                </div>
+            </div>
+        </div>
+        <div id="errorMsg" class="mt-4 text-danger text-sm text-center hidden"></div>
+    </main>
+
+    <footer class="py-4 bg-white shadow-inner border-t border-gray-200">
+        <div class="container mx-auto px-6 text-center text-gray-500 text-sm">
+            密码：jdme.jd.com
+        </div>
+    </footer>
+
+    <script>
+        const STORAGE_KEY = 'crypto_history';
+        let cryptoHistory = { encrypt: [], decrypt: [] };
+
+        function loadHistory() {
+            try {
+                const savedHistory = localStorage.getItem(STORAGE_KEY);
+                if (savedHistory) {
+                    cryptoHistory = JSON.parse(savedHistory);
+                    renderHistory();
+                }
+            } catch (e) {
+                console.log('No history found, starting fresh');
+            }
+        }
+
+        function saveHistory() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(cryptoHistory));
+            } catch (error) {
+                console.error('Error saving history:', error);
+                showError('保存历史记录失败');
+            }
+        }
+
+        function addHistory(type, input, result) {
+            const record = {
+                id: Date.now(),
+                timestamp: new Date().toLocaleString(),
+                input,
+                result
+            };
+            if (type === 'encrypt') {
+                cryptoHistory.encrypt.unshift(record);
+            } else {
+                cryptoHistory.decrypt.unshift(record);
+            }
+            saveHistory();
+            renderHistory();
+        }
+
+        function deleteRecord(type, id) {
+            if (type === 'encrypt') {
+                cryptoHistory.encrypt = cryptoHistory.encrypt.filter(record => record.id !== id);
+            } else {
+                cryptoHistory.decrypt = cryptoHistory.decrypt.filter(record => record.id !== id);
+            }
+            saveHistory();
+            renderHistory();
+        }
+
+        function escAttr(s) {
+            return String(s)
+                .replace(/&/g, '&amp;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        }
+
+        function renderHistory() {
+            const encryptHistoryEl = document.getElementById('encryptHistory');
+            const decryptHistoryEl = document.getElementById('decryptHistory');
+
+            encryptHistoryEl.innerHTML = cryptoHistory.encrypt.map(record => `
+                <div class="bg-gray-50 p-3 rounded-md relative group">
+                    <div class="text-xs text-gray-500 mb-1">${escAttr(record.timestamp)}</div>
+                    <div class="text-sm mb-2 break-all">
+                        <span class="font-medium">输入：</span>${escAttr(record.input)}
+                    </div>
+                    <div class="text-sm break-all">
+                        <span class="font-medium">结果：</span>${escAttr(record.result)}
+                    </div>
+                    <div class="absolute right-2 top-2 space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button type="button" data-copy="${escAttr(record.result)}" class="js-copy-history text-gray-500 hover:text-primary" title="复制结果">
+                            <i class="fa fa-copy"></i>
+                        </button>
+                        <button type="button" onclick="deleteRecord('encrypt', ${record.id})" class="text-gray-500 hover:text-danger" title="删除记录">
+                            <i class="fa fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            decryptHistoryEl.innerHTML = cryptoHistory.decrypt.map(record => `
+                <div class="bg-gray-50 p-3 rounded-md relative group">
+                    <div class="text-xs text-gray-500 mb-1">${escAttr(record.timestamp)}</div>
+                    <div class="text-sm mb-2 break-all">
+                        <span class="font-medium">输入：</span>${escAttr(record.input)}
+                    </div>
+                    <div class="text-sm break-all">
+                        <span class="font-medium">结果：</span>${escAttr(record.result)}
+                    </div>
+                    <div class="absolute right-2 top-2 space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button type="button" data-copy="${escAttr(record.result)}" class="js-copy-history text-gray-500 hover:text-primary" title="复制结果">
+                            <i class="fa fa-copy"></i>
+                        </button>
+                        <button type="button" onclick="deleteRecord('decrypt', ${record.id})" class="text-gray-500 hover:text-danger" title="删除记录">
+                            <i class="fa fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            encryptHistoryEl.querySelectorAll('.js-copy-history').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const t = this.getAttribute('data-copy');
+                    if (t) copyToClipboard(t, this);
+                });
+            });
+            decryptHistoryEl.querySelectorAll('.js-copy-history').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const t = this.getAttribute('data-copy');
+                    if (t) copyToClipboard(t, this);
+                });
+            });
+        }
+
+        function showError(message) {
+            const errorMsg = document.getElementById('errorMsg');
+            errorMsg.textContent = message;
+            errorMsg.classList.remove('hidden');
+        }
+
+        function copyToClipboard(text, buttonElement) {
+            navigator.clipboard.writeText(text).then(() => {
+                const icon = buttonElement && buttonElement.querySelector ? buttonElement.querySelector('i') : null;
+                if (icon) {
+                    icon.classList.remove('fa-copy');
+                    icon.classList.add('fa-check');
+                    setTimeout(() => {
+                        icon.classList.remove('fa-check');
+                        icon.classList.add('fa-copy');
+                    }, 1000);
+                }
+            }).catch(err => {
+                console.error('复制失败:', err);
+                const el = document.getElementById('errorMsg');
+                el.textContent = '复制失败：' + err.message;
+                el.classList.remove('hidden');
+            });
+        }
+
+        loadHistory();
+
+        document.getElementById('copyEncrypted').addEventListener('click', function () {
+            copyToClipboard(document.getElementById('encryptedResult').value, this);
+        });
+        document.getElementById('copyDecrypted').addEventListener('click', function () {
+            copyToClipboard(document.getElementById('decrypted').value, this);
+        });
+
+        document.getElementById('decryptBtn').addEventListener('click', function () {
+            const encrypted = document.getElementById('encrypted').value.trim();
+            const decryptedEl = document.getElementById('decrypted');
+            const errorMsg = document.getElementById('errorMsg');
+            const key = 'jdme.jd.com';
+
+            decryptedEl.value = '';
+            errorMsg.classList.add('hidden');
+            errorMsg.textContent = '';
+
+            if (!encrypted) {
+                errorMsg.textContent = '请输入加密内容';
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                if (!/^[0-9a-fA-F]+$/.test(encrypted)) {
+                    throw new Error('输入内容不是有效的 Hex 格式');
+                }
+                const keyHex = CryptoJS.enc.Utf8.parse(key);
+                const encryptedHex = CryptoJS.enc.Hex.parse(encrypted);
+                const decrypted = CryptoJS.DES.decrypt(
+                    { ciphertext: encryptedHex },
+                    keyHex,
+                    { mode: CryptoJS.mode.ECB, padding: CryptoJS.pad.Pkcs7 }
+                );
+                const plaintext = decrypted.toString(CryptoJS.enc.Utf8);
+                if (plaintext) {
+                    decryptedEl.value = plaintext;
+                    addHistory('decrypt', encrypted, plaintext);
+                } else {
+                    throw new Error('解密结果为空，可能密钥或格式不正确');
+                }
+            } catch (e) {
+                console.error('解密错误:', e);
+                errorMsg.textContent = '解密失败：' + e.message;
+                errorMsg.classList.remove('hidden');
+            }
+        });
+
+        document.getElementById('encryptBtn').addEventListener('click', function () {
+            const plaintext = document.getElementById('plaintext').value.trim();
+            const encryptedResultEl = document.getElementById('encryptedResult');
+            const errorMsg = document.getElementById('errorMsg');
+            const key = 'jdme.jd.com';
+
+            encryptedResultEl.value = '';
+            errorMsg.classList.add('hidden');
+            errorMsg.textContent = '';
+
+            if (!plaintext) {
+                errorMsg.textContent = '请输入明文内容';
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                const keyHex = CryptoJS.enc.Utf8.parse(key);
+                const encrypted = CryptoJS.DES.encrypt(
+                    plaintext,
+                    keyHex,
+                    { mode: CryptoJS.mode.ECB, padding: CryptoJS.pad.Pkcs7 }
+                );
+                const encryptedHex = encrypted.ciphertext.toString(CryptoJS.enc.Hex);
+                if (encryptedHex) {
+                    encryptedResultEl.value = encryptedHex;
+                    addHistory('encrypt', plaintext, encryptedHex);
+                } else {
+                    throw new Error('加密结果为空，可能密钥或格式不正确');
+                }
+            } catch (e) {
+                console.error('加密错误:', e);
+                errorMsg.textContent = '加密失败：' + e.message;
+                errorMsg.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

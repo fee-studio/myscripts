@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工具集合</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        danger: '#F53F3F'
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 min-h-screen flex">
+    <!-- 左侧导航栏 -->
+    <aside class="w-64 bg-white shadow-lg flex-shrink-0 h-screen sticky top-0 overflow-y-auto">
+        <div class="p-4 border-b border-gray-200">
+            <h1 class="text-xl font-bold text-primary">
+                <i class="fa fa-tools mr-2"></i>工具集合
+            </h1>
+        </div>
+        <nav class="p-2">
+            <button 
+                id="nav-url" 
+                class="w-full text-left px-4 py-3 rounded-lg mb-2 hover:bg-gray-100 transition-colors nav-item active bg-primary/10"
+                onclick="switchFunction('url')"
+            >
+                <i class="fa fa-link mr-2 text-primary"></i>
+                <span class="font-medium">URL编码/解码</span>
+            </button>
+            <button 
+                id="nav-lines2csv" 
+                class="w-full text-left px-4 py-3 rounded-lg mb-2 hover:bg-gray-100 transition-colors nav-item"
+                onclick="switchFunction('lines2csv')"
+            >
+                <i class="fa fa-table mr-2 text-primary"></i>
+                <span class="font-medium">行转CSV</span>
+            </button>
+            <button 
+                id="nav-jdme" 
+                class="w-full text-left px-4 py-3 rounded-lg mb-2 hover:bg-gray-100 transition-colors nav-item"
+                onclick="switchFunction('jdme')"
+            >
+                <i class="fa fa-lock mr-2 text-primary"></i>
+                <span class="font-medium">JDME加解密</span>
+            </button>
+        </nav>
+    </aside>
+
+    <!-- 主内容区域 -->
+    <main class="flex-1 flex flex-col min-h-screen">
+        <!-- URL编码/解码工具页面 -->
+        <div id="function-url" class="function-page flex-1">
+            <header class="py-6 bg-white shadow-sm">
+                <div class="container mx-auto px-6">
+                    <h2 class="text-2xl font-bold text-primary">
+                        <i class="fa fa-link mr-2"></i>URL编码/解码工具
+                    </h2>
+                </div>
+            </header>
+            <section class="flex-1 container mx-auto px-6 py-6">
+                <div class="max-w-4xl mx-auto grid grid-cols-2 gap-4">
+                    <!-- URL编码区域（左） -->
+                    <div class="bg-white rounded-lg shadow-md p-4">
+                        <h3 class="text-md font-semibold text-primary mb-3 text-center">
+                            <i class="fa fa-arrow-right mr-1"></i>URL编码
+                        </h3>
+                        <div class="mb-3">
+                            <label for="urlEncodeInput" class="block text-sm font-medium text-gray-700 mb-1">原始URL</label>
+                            <textarea 
+                                id="urlEncodeInput" 
+                                rows="4" 
+                                class="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-sm"
+                                placeholder="请输入要编码的URL或文本"
+                            ></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="urlEncodeResult" class="block text-sm font-medium text-gray-700 mb-1">编码结果</label>
+                            <textarea 
+                                id="urlEncodeResult" 
+                                rows="4" 
+                                class="w-full px-2 py-1 border border-gray-300 rounded-md bg-gray-50 text-sm"
+                                placeholder="编码结果将显示在这里"
+                                readonly
+                            ></textarea>
+                        </div>
+                        <div class="flex justify-center gap-2">
+                            <button 
+                                id="urlEncodeBtn" 
+                                class="px-4 py-1.5 bg-primary text-white rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm"
+                            >
+                                <i class="fa fa-arrow-right mr-1"></i> 编码
+                            </button>
+                            <button 
+                                id="copyUrlEncode"
+                                class="px-4 py-1.5 bg-gray-200 text-gray-600 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-300 text-sm"
+                                title="复制到剪贴板"
+                            >
+                                <i class="fa fa-copy mr-1"></i> 复制
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- URL解码区域（右） -->
+                    <div class="bg-white rounded-lg shadow-md p-4">
+                        <h3 class="text-md font-semibold text-primary mb-3 text-center">
+                            <i class="fa fa-arrow-left mr-1"></i>URL解码
+                        </h3>
+                        <div class="mb-3">
+                            <label for="urlDecodeInput" class="block text-sm font-medium text-gray-700 mb-1">编码URL</label>
+                            <textarea 
+                                id="urlDecodeInput" 
+                                rows="4" 
+                                class="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-sm"
+                                placeholder="请输入要解码的URL或文本"
+                            ></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="urlDecodeResult" class="block text-sm font-medium text-gray-700 mb-1">解码结果</label>
+                            <textarea 
+                                id="urlDecodeResult" 
+                                rows="4" 
+                                class="w-full px-2 py-1 border border-gray-300 rounded-md bg-gray-50 text-sm"
+                                placeholder="解码结果将显示在这里"
+                                readonly
+                            ></textarea>
+                        </div>
+                        <div class="flex justify-center gap-2">
+                            <button 
+                                id="urlDecodeBtn" 
+                                class="px-4 py-1.5 bg-primary text-white rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm"
+                            >
+                                <i class="fa fa-arrow-left mr-1"></i> 解码
+                            </button>
+                            <button 
+                                id="copyUrlDecode"
+                                class="px-4 py-1.5 bg-gray-200 text-gray-600 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-300 text-sm"
+                                title="复制到剪贴板"
+                            >
+                                <i class="fa fa-copy mr-1"></i> 复制
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div id="errorMsgUrl" class="mt-4 text-danger text-sm text-center hidden"></div>
+            </section>
+        </div>
+
+        <!-- 行转 CSV 工具页面 -->
+        <div id="function-lines2csv" class="function-page flex-1 hidden">
+            <header class="py-6 bg-white shadow-sm">
+                <div class="container mx-auto px-6">
+                    <h2 class="text-2xl font-bold text-primary">
+                        <i class="fa fa-table mr-2"></i>行转 CSV
+                    </h2>
+                    <p class="text-sm text-gray-500 mt-1">用空格/制表符分词，<strong>输出固定为一行</strong>逗号格式（<code class="text-xs bg-gray-100 px-1 rounded">a,b,c,d</code>），不输出换行；多行输入会按顺序展平为同一行；单元格内逗号/引号会转义；可选去重、忽略空行。</p>
+                </div>
+            </header>
+            <section class="flex-1 container mx-auto px-6 py-6">
+                <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-md p-4">
+                    <div class="mb-3">
+                        <label for="lines2csvInput" class="block text-sm font-medium text-gray-700 mb-1">输入（可多行，空白分词，输出合并为一行）</label>
+                        <textarea
+                            id="lines2csvInput"
+                            rows="12"
+                            class="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-sm font-mono"
+                            placeholder="多行会合并为单行 CSV，如：&#10;a  b  c  d&#10;1  2  3  →  a,b,c,d,1,2,3"
+                        ></textarea>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-4 mb-3 text-sm text-gray-700">
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="lines2csvDedup" class="rounded border-gray-300 text-primary focus:ring-primary/50" />
+                            <span class="ml-2">去重（保留首次出现顺序）</span>
+                        </label>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="lines2csvSkipEmpty" class="rounded border-gray-300 text-primary focus:ring-primary/50" checked />
+                            <span class="ml-2">忽略空行</span>
+                        </label>
+                    </div>
+                    <div class="mb-3">
+                        <label for="lines2csvOutput" class="block text-sm font-medium text-gray-700 mb-1">CSV 输出（仅一行，无换行）</label>
+                        <textarea
+                            id="lines2csvOutput"
+                            rows="4"
+                            class="w-full px-2 py-1 border border-gray-300 rounded-md bg-gray-50 text-sm font-mono"
+                            placeholder="a,b,c,d 形式，单行"
+                            readonly
+                        ></textarea>
+                    </div>
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div class="text-xs text-gray-500" id="lines2csvStats"></div>
+                        <div class="flex gap-2">
+                            <button
+                                type="button"
+                                id="lines2csvConvertBtn"
+                                class="px-4 py-1.5 bg-primary text-white rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm"
+                            >
+                                <i class="fa fa-arrow-right mr-1"></i> 转换
+                            </button>
+                            <button
+                                type="button"
+                                id="lines2csvCopyBtn"
+                                class="px-4 py-1.5 bg-gray-200 text-gray-600 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-300 text-sm"
+                                title="复制到剪贴板"
+                            >
+                                <i class="fa fa-copy mr-1"></i> 复制
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div id="errorMsgLines2csv" class="mt-4 text-danger text-sm text-center hidden"></div>
+            </section>
+        </div>
+
+        <!-- JDME加解密工具页面 -->
+        <div id="function-jdme" class="function-page flex-1 hidden">
+            <header class="py-6 bg-white shadow-sm">
+                <div class="container mx-auto px-6">
+                    <h2 class="text-2xl font-bold text-primary">
+                        <i class="fa fa-lock mr-2"></i>JDME加解密工具
+                    </h2>
+                </div>
+            </header>
+            <section class="flex-1 container mx-auto px-6 py-6">
+                <div class="max-w-6xl mx-auto">
+                    <div class="grid grid-cols-2 auto-rows-auto gap-6">
+                        <!-- 加密区域（左上） -->
+                        <div class="bg-white rounded-lg shadow-md p-3 h-[280px] flex flex-col justify-between">
+                            <h2 class="text-lg font-bold text-primary mb-2 text-center">
+                                <i class="fa fa-lock mr-2"></i>加密
+                            </h2>
+                            <div class="mb-2">
+                                <label for="plaintext" class="block text-sm font-medium text-gray-700 mb-1">明文内容</label>
+                                <textarea 
+                                    id="plaintext" 
+                                    rows="2" 
+                                    class="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+                                    placeholder="请输入要加密的内容"
+                                ></textarea>
+                            </div>
+                            <div class="mb-2">
+                                <label for="encryptedResult" class="block text-sm font-medium text-gray-700 mb-1">加密结果</label>
+                                <textarea 
+                                    id="encryptedResult" 
+                                    rows="2" 
+                                    class="w-full px-2 py-1 border border-gray-300 rounded-md bg-gray-50"
+                                    placeholder="加密结果将显示在这里（Hex格式）"
+                                    readonly
+                                ></textarea>
+                            </div>
+                            <div class="flex justify-center gap-2">
+                                <button 
+                                    id="encryptBtn" 
+                                    class="px-4 py-1.5 bg-primary text-white rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm"
+                                >
+                                    <i class="fa fa-lock mr-1"></i> 加密
+                                </button>
+                                <button 
+                                    id="copyEncrypted"
+                                    class="px-4 py-1.5 bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 text-sm"
+                                    title="复制到剪贴板"
+                                >
+                                    <i class="fa fa-copy mr-1"></i> 复制
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 解密区域（右上） -->
+                        <div class="bg-white rounded-lg shadow-md p-3 h-[280px] flex flex-col justify-between">
+                            <h2 class="text-lg font-bold text-primary mb-2 text-center">
+                                <i class="fa fa-unlock mr-2"></i>解密
+                            </h2>
+                            <div class="mb-2">
+                                <label for="encrypted" class="block text-sm font-medium text-gray-700 mb-1">加密内容</label>
+                                <textarea 
+                                    id="encrypted" 
+                                    rows="2" 
+                                    class="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary"
+                                    placeholder="请输入要解密的内容（Hex格式）"
+                                ></textarea>
+                            </div>
+                            <div class="mb-2">
+                                <label for="decrypted" class="block text-sm font-medium text-gray-700 mb-1">解密结果</label>
+                                <textarea 
+                                    id="decrypted" 
+                                    rows="2" 
+                                    class="w-full px-2 py-1 border border-gray-300 rounded-md bg-gray-50"
+                                    placeholder="解密结果将显示在这里"
+                                    readonly
+                                ></textarea>
+                            </div>
+                            <div class="flex justify-center gap-2">
+                                <button 
+                                    id="decryptBtn" 
+                                    class="px-4 py-1.5 bg-primary text-white rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm"
+                                >
+                                    <i class="fa fa-unlock mr-1"></i> 解密
+                                </button>
+                                <button 
+                                    id="copyDecrypted"
+                                    class="px-4 py-1.5 bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300 text-sm"
+                                    title="复制到剪贴板"
+                                >
+                                    <i class="fa fa-copy mr-1"></i> 复制
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 加密历史（左下） -->
+                        <div class="bg-white rounded-lg shadow-md p-6 min-h-0 max-h-[300px] overflow-y-auto">
+                            <h3 class="text-lg font-bold text-primary mb-4">
+                                加密历史
+                            </h3>
+                            <div id="encryptHistory" class="space-y-3">
+                            </div>
+                        </div>
+
+                        <!-- 解密历史（右下） -->
+                        <div class="bg-white rounded-lg shadow-md p-6 min-h-0 max-h-[300px] overflow-y-auto">
+                            <h3 class="text-lg font-bold text-primary mb-4">
+                                解密历史
+                            </h3>
+                            <div id="decryptHistory" class="space-y-3">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="errorMsg" class="mt-4 text-danger text-sm text-center hidden"></div>
+            </section>
+            <footer class="py-4 bg-white shadow-inner border-t border-gray-200">
+                <div class="container mx-auto px-6 text-center text-gray-500 text-sm">
+                    密码：jdme.jd.com
+                </div>
+            </footer>
+        </div>
+    </main>
+
+    <script>
+        // 功能切换
+        function switchFunction(functionName) {
+            // 隐藏所有功能页面
+            document.querySelectorAll('.function-page').forEach(page => {
+                page.classList.add('hidden');
+            });
+            
+            // 移除所有导航按钮的active状态
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active', 'bg-primary/10');
+            });
+            
+            // 显示选中的功能页面
+            const targetPage = document.getElementById('function-' + functionName);
+            if (targetPage) {
+                targetPage.classList.remove('hidden');
+            }
+            
+            // 激活对应的导航按钮
+            const targetNav = document.getElementById('nav-' + functionName);
+            if (targetNav) {
+                targetNav.classList.add('active', 'bg-primary/10');
+            }
+        }
+        
+        // 初始化：默认显示URL编码/解码工具
+        document.addEventListener('DOMContentLoaded', function() {
+            switchFunction('url');
+        });
+
+        // 历史记录管理
+        const STORAGE_KEY = 'crypto_history';
+        let cryptoHistory = { encrypt: [], decrypt: [] };
+
+        // 从 localStorage 加载历史记录
+        function loadHistory() {
+            try {
+                const savedHistory = localStorage.getItem(STORAGE_KEY);
+                if (savedHistory) {
+                    cryptoHistory = JSON.parse(savedHistory);
+                    renderHistory();
+                }
+            } catch (error) {
+                console.log('No history found, starting fresh');
+            }
+        }
+
+        // 保存历史记录到 localStorage
+        function saveHistory() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(cryptoHistory));
+            } catch (error) {
+                console.error('Error saving history:', error);
+                showError('保存历史记录失败');
+            }
+        }
+
+        // 添加历史记录
+        function addHistory(type, input, result) {
+            const record = {
+                id: Date.now(),
+                timestamp: new Date().toLocaleString(),
+                input,
+                result
+            };
+            
+            if (type === 'encrypt') {
+                cryptoHistory.encrypt.unshift(record);
+            } else {
+                cryptoHistory.decrypt.unshift(record);
+            }
+            
+            saveHistory();
+            renderHistory();
+        }
+
+        // 删除历史记录
+        function deleteRecord(type, id) {
+            if (type === 'encrypt') {
+                cryptoHistory.encrypt = cryptoHistory.encrypt.filter(record => record.id !== id);
+            } else {
+                cryptoHistory.decrypt = cryptoHistory.decrypt.filter(record => record.id !== id);
+            }
+            
+            saveHistory();
+            renderHistory();
+        }
+
+        // 渲染历史记录
+        function renderHistory() {
+            const encryptHistoryEl = document.getElementById('encryptHistory');
+            const decryptHistoryEl = document.getElementById('decryptHistory');
+            
+            encryptHistoryEl.innerHTML = cryptoHistory.encrypt.map(record => `
+                <div class="bg-gray-50 p-3 rounded-md relative group">
+                    <div class="text-xs text-gray-500 mb-1">${record.timestamp}</div>
+                    <div class="text-sm mb-2 break-all">
+                        <span class="font-medium">输入：</span>${record.input}
+                    </div>
+                    <div class="text-sm break-all">
+                        <span class="font-medium">结果：</span>${record.result}
+                    </div>
+                    <div class="absolute right-2 top-2 space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onclick="copyToClipboard('${record.result}', this)" class="text-gray-500 hover:text-primary" title="复制结果">
+                            <i class="fa fa-copy"></i>
+                        </button>
+                        <button onclick="deleteRecord('encrypt', ${record.id})" class="text-gray-500 hover:text-danger" title="删除记录">
+                            <i class="fa fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+            
+            decryptHistoryEl.innerHTML = cryptoHistory.decrypt.map(record => `
+                <div class="bg-gray-50 p-3 rounded-md relative group">
+                    <div class="text-xs text-gray-500 mb-1">${record.timestamp}</div>
+                    <div class="text-sm mb-2 break-all">
+                        <span class="font-medium">输入：</span>${record.input}
+                    </div>
+                    <div class="text-sm break-all">
+                        <span class="font-medium">结果：</span>${record.result}
+                    </div>
+                    <div class="absolute right-2 top-2 space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onclick="copyToClipboard('${record.result}', this)" class="text-gray-500 hover:text-primary" title="复制结果">
+                            <i class="fa fa-copy"></i>
+                        </button>
+                        <button onclick="deleteRecord('decrypt', ${record.id})" class="text-gray-500 hover:text-danger" title="删除记录">
+                            <i class="fa fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 显示错误信息
+        function showError(message) {
+            const errorMsg = document.getElementById('errorMsg');
+            errorMsg.textContent = message;
+            errorMsg.classList.remove('hidden');
+        }
+
+        // 页面加载时读取历史记录
+        loadHistory();
+
+        // 复制功能（errorElementId 可选，如 errorMsgLines2csv、errorMsgUrl；默认 errorMsg 供 JDME 用）
+        function copyToClipboard(text, buttonElement, errorElementId) {
+            const errId = errorElementId !== undefined ? errorElementId : 'errorMsg';
+            navigator.clipboard.writeText(text).then(() => {
+                const icon = buttonElement && buttonElement.querySelector ? buttonElement.querySelector('i') : null;
+                if (icon) {
+                    icon.classList.remove('fa-copy');
+                    icon.classList.add('fa-check');
+                    setTimeout(() => {
+                        icon.classList.remove('fa-check');
+                        icon.classList.add('fa-copy');
+                    }, 1000);
+                }
+            }).catch(err => {
+                console.error('复制失败:', err);
+                const el = errId ? document.getElementById(errId) : null;
+                if (el) {
+                    el.textContent = '复制失败：' + err.message;
+                    el.classList.remove('hidden');
+                }
+            });
+        }
+
+        // CSV 单元格转义（RFC 4180 风格，一行多列时逗号/引号/换行需转义）
+        function escapeCsvField(s) {
+            const str = s == null ? '' : String(s);
+            if (/[",\r\n]/.test(str)) {
+                return '"' + str.replace(/"/g, '""') + '"';
+            }
+            return str;
+        }
+
+        // 一行中按连续空白切分为多列
+        function lineToCells(line) {
+            const t = line.trim();
+            if (t.length === 0) {
+                return null;
+            }
+            return t.split(/\s+/);
+        }
+
+        function runLines2csv() {
+            const input = document.getElementById('lines2csvInput').value;
+            const skipEmpty = document.getElementById('lines2csvSkipEmpty').checked;
+            const dedup = document.getElementById('lines2csvDedup').checked;
+            const outEl = document.getElementById('lines2csvOutput');
+            const statsEl = document.getElementById('lines2csvStats');
+            const errEl = document.getElementById('errorMsgLines2csv');
+            errEl.classList.add('hidden');
+            errEl.textContent = '';
+
+            const rawLines = input.split(/\r?\n/);
+            const rawCount = rawLines.length;
+            const allCells = [];
+            for (let i = 0; i < rawLines.length; i++) {
+                const cells = lineToCells(rawLines[i]);
+                if (cells === null) {
+                    if (skipEmpty) {
+                        continue;
+                    }
+                } else {
+                    for (let j = 0; j < cells.length; j++) {
+                        allCells.push(cells[j]);
+                    }
+                }
+            }
+            let fields = allCells;
+            if (dedup) {
+                const seen = new Set();
+                fields = allCells.filter(function (c) {
+                    if (seen.has(c)) {
+                        return false;
+                    }
+                    seen.add(c);
+                    return true;
+                });
+            }
+
+            if (fields.length === 0) {
+                outEl.value = '';
+                statsEl.textContent = '';
+                errEl.textContent = skipEmpty ? '没有可转换的内容（输入为空或均为空行）' : '没有可转换的内容';
+                errEl.classList.remove('hidden');
+                return;
+            }
+
+            outEl.value = fields.map(escapeCsvField).join(',');
+            statsEl.textContent = '输出 1 行，共 ' + fields.length + ' 个用逗号分隔的字段（从 ' + rawCount + ' 行输入中采集）';
+        }
+
+        // 加密结果复制按钮
+        document.getElementById('copyEncrypted').addEventListener('click', function() {
+            const text = document.getElementById('encryptedResult').value;
+            copyToClipboard(text, this);
+        });
+
+        // 解密结果复制按钮
+        document.getElementById('copyDecrypted').addEventListener('click', function() {
+            const text = document.getElementById('decrypted').value;
+            copyToClipboard(text, this);
+        });
+
+        // URL编码功能
+        document.getElementById('urlEncodeBtn').addEventListener('click', function() {
+            const input = document.getElementById('urlEncodeInput').value.trim();
+            const resultEl = document.getElementById('urlEncodeResult');
+            const errorMsg = document.getElementById('errorMsgUrl');
+
+            resultEl.value = '';
+            errorMsg.classList.add('hidden');
+            errorMsg.textContent = '';
+
+            if (!input) {
+                errorMsg.textContent = '请输入要编码的内容';
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                const encoded = encodeURIComponent(input);
+                resultEl.value = encoded;
+            } catch (e) {
+                console.error('URL编码错误:', e);
+                errorMsg.textContent = '编码失败：' + e.message;
+                errorMsg.classList.remove('hidden');
+            }
+        });
+
+        // URL解码功能
+        document.getElementById('urlDecodeBtn').addEventListener('click', function() {
+            const input = document.getElementById('urlDecodeInput').value.trim();
+            const resultEl = document.getElementById('urlDecodeResult');
+            const errorMsg = document.getElementById('errorMsgUrl');
+
+            resultEl.value = '';
+            errorMsg.classList.add('hidden');
+            errorMsg.textContent = '';
+
+            if (!input) {
+                errorMsg.textContent = '请输入要解码的内容';
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                const decoded = decodeURIComponent(input);
+                resultEl.value = decoded;
+            } catch (e) {
+                console.error('URL解码错误:', e);
+                errorMsg.textContent = '解码失败：' + e.message;
+                errorMsg.classList.remove('hidden');
+            }
+        });
+
+        // URL编码结果复制按钮
+        document.getElementById('copyUrlEncode').addEventListener('click', function() {
+            const text = document.getElementById('urlEncodeResult').value;
+            if (text) {
+                copyToClipboard(text, this, 'errorMsgUrl');
+            }
+        });
+
+        // URL解码结果复制按钮
+        document.getElementById('copyUrlDecode').addEventListener('click', function() {
+            const text = document.getElementById('urlDecodeResult').value;
+            if (text) {
+                copyToClipboard(text, this, 'errorMsgUrl');
+            }
+        });
+
+        // 行转 CSV：转换与复制
+        document.getElementById('lines2csvConvertBtn').addEventListener('click', function () {
+            runLines2csv();
+        });
+        document.getElementById('lines2csvCopyBtn').addEventListener('click', function () {
+            const text = document.getElementById('lines2csvOutput').value;
+            if (text) {
+                copyToClipboard(text, this, 'errorMsgLines2csv');
+            }
+        });
+
+        document.getElementById('decryptBtn').addEventListener('click', function() {
+            const encrypted = document.getElementById('encrypted').value.trim();
+            const decryptedEl = document.getElementById('decrypted');
+            const errorMsg = document.getElementById('errorMsg');
+            const key = 'jdme.jd.com';
+
+            // 重置状态
+            decryptedEl.value = '';
+            errorMsg.classList.add('hidden');
+            errorMsg.textContent = '';
+
+            if (!encrypted) {
+                errorMsg.textContent = '请输入加密内容';
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                // 验证Hex格式
+                if (!/^[0-9a-fA-F]+$/.test(encrypted)) {
+                    throw new Error('输入内容不是有效的Hex格式');
+                }
+                
+                // 处理密钥（确保符合DES要求）
+                const keyHex = CryptoJS.enc.Utf8.parse(key);
+                
+                // 将Hex格式的密文转换为WordArray
+                const encryptedHex = CryptoJS.enc.Hex.parse(encrypted);
+                
+                // 执行解密
+                const decrypted = CryptoJS.DES.decrypt(
+                    { ciphertext: encryptedHex },
+                    keyHex,
+                    {
+                        mode: CryptoJS.mode.ECB,
+                        padding: CryptoJS.pad.Pkcs7
+                    }
+                );
+
+                // 转换为明文
+                const plaintext = decrypted.toString(CryptoJS.enc.Utf8);
+                
+                if (plaintext) {
+                    decryptedEl.value = plaintext;
+                    addHistory('decrypt', encrypted, plaintext);
+                } else {
+                    throw new Error('解密结果为空，可能密钥或格式不正确');
+                }
+            } catch (e) {
+                console.error('解密错误:', e);
+                errorMsg.textContent = '解密失败：' + e.message;
+                errorMsg.classList.remove('hidden');
+            }
+        });
+
+        document.getElementById('encryptBtn').addEventListener('click', function() {
+            const plaintext = document.getElementById('plaintext').value.trim();
+            const encryptedResultEl = document.getElementById('encryptedResult');
+            const errorMsg = document.getElementById('errorMsg');
+            const key = 'jdme.jd.com';
+
+            // 重置状态
+            encryptedResultEl.value = '';
+            errorMsg.classList.add('hidden');
+            errorMsg.textContent = '';
+
+            if (!plaintext) {
+                errorMsg.textContent = '请输入明文内容';
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                // 处理密钥（确保符合DES要求）
+                const keyHex = CryptoJS.enc.Utf8.parse(key);
+
+                // 执行加密
+                const encrypted = CryptoJS.DES.encrypt(
+                    plaintext,
+                    keyHex,
+                    {
+                        mode: CryptoJS.mode.ECB,
+                        padding: CryptoJS.pad.Pkcs7
+                    }
+                );
+
+                // 转换为Hex格式
+                const encryptedHex = encrypted.ciphertext.toString(CryptoJS.enc.Hex);
+
+                if (encryptedHex) {
+                    encryptedResultEl.value = encryptedHex;
+                    addHistory('encrypt', plaintext, encryptedHex);
+                } else {
+                    throw new Error('加密结果为空，可能密钥或格式不正确');
+                }
+            } catch (e) {
+                console.error('加密错误:', e);
+                errorMsg.textContent = '加密失败：' + e.message;
+                errorMsg.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

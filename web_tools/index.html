@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小工具合集</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        danger: '#F53F3F'
+                    }
+                }
+            }
+        };
+    </script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <header class="bg-white shadow-sm py-10">
+        <div class="container mx-auto px-6 max-w-4xl text-center">
+            <h1 class="text-3xl font-bold text-primary">
+                <i class="fa fa-tools mr-2"></i>小工具合集
+            </h1>
+            <p class="text-gray-500 mt-3 text-sm">每个工具单独页面，可收藏直达。</p>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-6 py-10 max-w-4xl">
+        <ul class="grid gap-4 sm:grid-cols-2">
+            <li>
+                <a href="url-tool.html" class="block bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow border border-gray-100">
+                    <div class="flex items-start gap-4">
+                        <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary text-xl">
+                            <i class="fa fa-link"></i>
+                        </span>
+                        <div>
+                            <h2 class="text-lg font-semibold text-gray-900">URL 编码 / 解码</h2>
+                            <p class="text-sm text-gray-500 mt-1">对文本做 encodeURIComponent / decodeURIComponent。</p>
+                        </div>
+                    </div>
+                </a>
+            </li>
+            <li>
+                <a href="lines2csv.html" class="block bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow border border-gray-100">
+                    <div class="flex items-start gap-4">
+                        <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary text-xl">
+                            <i class="fa fa-table"></i>
+                        </span>
+                        <div>
+                            <h2 class="text-lg font-semibold text-gray-900">行转 CSV</h2>
+                            <p class="text-sm text-gray-500 mt-1">空白分词，合并为一行逗号分隔，支持去重与忽略空行。</p>
+                        </div>
+                    </div>
+                </a>
+            </li>
+            <li class="sm:col-span-2">
+                <a href="jdme-crypto.html" class="block bg-white rounded-xl shadow-md p-6 hover:shadow-lg transition-shadow border border-gray-100">
+                    <div class="flex items-start gap-4">
+                        <span class="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary text-xl">
+                            <i class="fa fa-lock"></i>
+                        </span>
+                        <div>
+                            <h2 class="text-lg font-semibold text-gray-900">JDME 加解密</h2>
+                            <p class="text-sm text-gray-500 mt-1">DES-ECB + PKCS7，密文 Hex；含本地加解密历史。</p>
+                        </div>
+                    </div>
+                </a>
+            </li>
+        </ul>
+    </main>
+
+    <footer class="py-8 text-center text-sm text-gray-400">
+        <a href="index.html" class="text-primary hover:underline">首页</a>
+        <span class="mx-2">·</span>
+        <span>本地静态页面，按需打开对应 html 即可</span>
+    </footer>
+</body>
+</html>

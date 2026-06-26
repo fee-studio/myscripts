@@ -1,0 +1,6 @@
+---
+globs: web_tools/**
+alwaysApply: false
+---
+
+每个小工具由1个独立的文件来管理，首页是index.html来集合所有的功能

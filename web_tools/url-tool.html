@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL 编码 / 解码</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#165DFF', danger: '#F53F3F' }
+                }
+            }
+        };
+    </script>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <header class="bg-white shadow-sm py-4">
+        <div class="container mx-auto px-6 flex flex-wrap items-center gap-3">
+            <a href="index.html" class="text-sm text-gray-500 hover:text-primary"><i class="fa fa-arrow-left mr-1"></i>返回首页</a>
+            <h1 class="text-2xl font-bold text-primary">
+                <i class="fa fa-link mr-2"></i>URL 编码 / 解码
+            </h1>
+        </div>
+    </header>
+
+    <main class="flex-1 container mx-auto px-6 py-6">
+        <div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-white rounded-lg shadow-md p-4">
+                <h2 class="text-md font-semibold text-primary mb-3 text-center">
+                    <i class="fa fa-arrow-right mr-1"></i>URL 编码
+                </h2>
+                <div class="mb-3">
+                    <label for="urlEncodeInput" class="block text-sm font-medium text-gray-700 mb-1">原始文本</label>
+                    <textarea
+                        id="urlEncodeInput"
+                        rows="4"
+                        class="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-sm"
+                        placeholder="请输入要编码的 URL 或文本"
+                    ></textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="urlEncodeResult" class="block text-sm font-medium text-gray-700 mb-1">编码结果</label>
+                    <textarea
+                        id="urlEncodeResult"
+                        rows="4"
+                        class="w-full px-2 py-1 border border-gray-300 rounded-md bg-gray-50 text-sm"
+                        placeholder="编码结果将显示在这里"
+                        readonly
+                    ></textarea>
+                </div>
+                <div class="flex justify-center gap-2">
+                    <button id="urlEncodeBtn" type="button" class="px-4 py-1.5 bg-primary text-white rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm">
+                        <i class="fa fa-arrow-right mr-1"></i> 编码
+                    </button>
+                    <button id="copyUrlEncode" type="button" class="px-4 py-1.5 bg-gray-200 text-gray-600 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-300 text-sm" title="复制到剪贴板">
+                        <i class="fa fa-copy mr-1"></i> 复制
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-4">
+                <h2 class="text-md font-semibold text-primary mb-3 text-center">
+                    <i class="fa fa-arrow-left mr-1"></i>URL 解码
+                </h2>
+                <div class="mb-3">
+                    <label for="urlDecodeInput" class="block text-sm font-medium text-gray-700 mb-1">已编码文本</label>
+                    <textarea
+                        id="urlDecodeInput"
+                        rows="4"
+                        class="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary text-sm"
+                        placeholder="请输入要解码的 URL 或文本"
+                    ></textarea>
+                </div>
+                <div class="mb-3">
+                    <label for="urlDecodeResult" class="block text-sm font-medium text-gray-700 mb-1">解码结果</label>
+                    <textarea
+                        id="urlDecodeResult"
+                        rows="4"
+                        class="w-full px-2 py-1 border border-gray-300 rounded-md bg-gray-50 text-sm"
+                        placeholder="解码结果将显示在这里"
+                        readonly
+                    ></textarea>
+                </div>
+                <div class="flex justify-center gap-2">
+                    <button id="urlDecodeBtn" type="button" class="px-4 py-1.5 bg-primary text-white rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/50 text-sm">
+                        <i class="fa fa-arrow-left mr-1"></i> 解码
+                    </button>
+                    <button id="copyUrlDecode" type="button" class="px-4 py-1.5 bg-gray-200 text-gray-600 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-300 text-sm" title="复制到剪贴板">
+                        <i class="fa fa-copy mr-1"></i> 复制
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="errorMsgUrl" class="mt-4 text-danger text-sm text-center hidden"></div>
+    </main>
+
+    <script>
+        function copyToClipboard(text, buttonElement) {
+            const errEl = document.getElementById('errorMsgUrl');
+            navigator.clipboard.writeText(text).then(() => {
+                errEl.classList.add('hidden');
+                const icon = buttonElement && buttonElement.querySelector ? buttonElement.querySelector('i') : null;
+                if (icon) {
+                    icon.classList.remove('fa-copy');
+                    icon.classList.add('fa-check');
+                    setTimeout(() => {
+                        icon.classList.remove('fa-check');
+                        icon.classList.add('fa-copy');
+                    }, 1000);
+                }
+            }).catch(err => {
+                errEl.textContent = '复制失败：' + err.message;
+                errEl.classList.remove('hidden');
+            });
+        }
+
+        document.getElementById('urlEncodeBtn').addEventListener('click', function () {
+            const input = document.getElementById('urlEncodeInput').value.trim();
+            const resultEl = document.getElementById('urlEncodeResult');
+            const errorMsg = document.getElementById('errorMsgUrl');
+            resultEl.value = '';
+            errorMsg.classList.add('hidden');
+            errorMsg.textContent = '';
+            if (!input) {
+                errorMsg.textContent = '请输入要编码的内容';
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+            try {
+                resultEl.value = encodeURIComponent(input);
+            } catch (e) {
+                errorMsg.textContent = '编码失败：' + e.message;
+                errorMsg.classList.remove('hidden');
+            }
+        });
+
+        document.getElementById('urlDecodeBtn').addEventListener('click', function () {
+            const input = document.getElementById('urlDecodeInput').value.trim();
+            const resultEl = document.getElementById('urlDecodeResult');
+            const errorMsg = document.getElementById('errorMsgUrl');
+            resultEl.value = '';
+            errorMsg.classList.add('hidden');
+            errorMsg.textContent = '';
+            if (!input) {
+                errorMsg.textContent = '请输入要解码的内容';
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+            try {
+                resultEl.value = decodeURIComponent(input);
+            } catch (e) {
+                errorMsg.textContent = '解码失败：' + e.message;
+                errorMsg.classList.remove('hidden');
+            }
+        });
+
+        document.getElementById('copyUrlEncode').addEventListener('click', function () {
+            const text = document.getElementById('urlEncodeResult').value;
+            if (text) copyToClipboard(text, this);
+        });
+        document.getElementById('copyUrlDecode').addEventListener('click', function () {
+            const text = document.getElementById('urlDecodeResult').value;
+            if (text) copyToClipboard(text, this);
+        });
+    </script>
+</body>
+</html>
